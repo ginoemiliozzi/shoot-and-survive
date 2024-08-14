@@ -44,6 +44,7 @@ class Player(pygame.sprite.Sprite):
         self.shots_group = shots_group
         self.speed = 5
         self.direction = self.player_directions["RIGHT"]["direction_vector"]
+        self.hp_potions = 3
         self.max_hp = 100
         self.hp = self.max_hp
         self.damaged_time = 0  # Track when the player was last damaged
@@ -70,8 +71,12 @@ class Player(pygame.sprite.Sprite):
 
         # Shooting event
         for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.shoot()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.shoot()
+                if event.key == pygame.K_e:
+                    self.take_hp_potion()
+
 
         # Handle damage state
         if pygame.time.get_ticks() - self.damaged_time > self.damage_display_duration:
@@ -115,8 +120,12 @@ class Player(pygame.sprite.Sprite):
 
         return damaged_image
 
-
-        return damaged_image
+    def take_hp_potion(self):
+        if self.hp_potions < 1:
+            print("cannot take hp potion")
+        else:
+            self.hp_potions -= 1
+            self.hp += 10
 
     def get_current_direction(self):
         if self.direction == self.player_directions["UP"]["direction_vector"]:
