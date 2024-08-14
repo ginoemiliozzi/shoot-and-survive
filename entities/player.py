@@ -1,10 +1,13 @@
 from entities.shot import Shot
+from objects import Potion_HP
+from attributes import Inventory, HealthPoints
 import pygame
-import config 
 
-class Player(pygame.sprite.Sprite):
+class Player(pygame.sprite.Sprite, HealthPoints):
     def __init__(self, screen, shots_group):
-        super().__init__()
+        pygame.sprite.Sprite.__init__(self)
+        HealthPoints.__init__(self, max_hp=100)
+
         self.container_screen = screen
         self.player_directions = {
                 "UP": {
@@ -44,11 +47,9 @@ class Player(pygame.sprite.Sprite):
         self.shots_group = shots_group
         self.speed = 5
         self.direction = self.player_directions["RIGHT"]["direction_vector"]
-        self.hp_potions = 3
-        self.max_hp = 100
-        self.hp = self.max_hp
-        self.damaged_time = 0  # Track when the player was last damaged
-        self.damage_display_duration = 500
+        self.inventory = Inventory({
+            Potion_HP() for _ in range(0, 3)
+        })
 
     def update(self, keys, events):
         # Movement
@@ -75,18 +76,17 @@ class Player(pygame.sprite.Sprite):
                 if event.key == pygame.K_SPACE:
                     self.shoot()
                 if event.key == pygame.K_e:
-                    self.take_hp_potion()
-
+                    self.inventory.use_item(Potion_HP.ITEM_TAG, self)
 
         # Handle damage state
-        if pygame.time.get_ticks() - self.damaged_time > self.damage_display_duration:
-            # Restore original images after damage duration
-            current_direction = self.get_current_direction()
-            self.images = self.player_directions[current_direction]["direction_images"]
-        else:
+        if self.should_display_dmg():
             # Apply red overlay to images while damaged
             self.images = [self.apply_red_overlay(image) 
                            for image in self.player_directions[self.get_current_direction()]["direction_images"]]
+        else:
+            # Restore original images after damage duration
+            current_direction = self.get_current_direction()
+            self.images = self.player_directions[current_direction]["direction_images"]
 
         self.current_frame += 0.1
         if self.current_frame >= len(self.images):
@@ -119,13 +119,7 @@ class Player(pygame.sprite.Sprite):
         damaged_image.unlock()
 
         return damaged_image
-
-    def take_hp_potion(self):
-        if self.hp_potions < 1:
-            print("cannot take hp potion")
-        else:
-            self.hp_potions -= 1
-            self.hp += 10
+            
 
     def get_current_direction(self):
         if self.direction == self.player_directions["UP"]["direction_vector"]:
@@ -136,13 +130,6 @@ class Player(pygame.sprite.Sprite):
             return "LEFT"
         elif self.direction == self.player_directions["RIGHT"]["direction_vector"]:
             return "RIGHT"
-
-    def take_damage(self, dmg):
-        self.hp -= dmg
-        if self.hp <= 0:
-            self.kill()
-        else:
-            self.damaged_time = pygame.time.get_ticks()  
 
     def shoot(self):
         shot = Shot(self.rect.centerx, self.rect.top, self.direction)

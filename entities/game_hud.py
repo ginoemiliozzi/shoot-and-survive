@@ -1,5 +1,6 @@
 import pygame
 from entities import Player
+from objects import Potion_HP
 
 import config
 
@@ -19,11 +20,12 @@ class GameHUD:
         bar_x = self.screen.get_width() - self.hp_bar_width - padding_x
         bar_y = 10
 
-        current_hp_width = int(self.hp_bar_width * (self.player.hp / self.player.max_hp))
+        current_hp_calc = int(self.hp_bar_width * (self.player.current_hp / self.player.max_hp))
 
         full_bar_surface = pygame.Surface((self.hp_bar_width, self.hp_bar_height))
         full_bar_surface.fill(config.COLOR_RED)
 
+        current_hp_width = current_hp_calc if current_hp_calc > 0 else 0
         current_hp_surface = pygame.Surface((current_hp_width, self.hp_bar_height))
         current_hp_surface.fill(config.COLOR_GREEN)
 
@@ -48,8 +50,8 @@ class GameHUD:
         return monsters_section_width
     
     def potions_left(self, padding_x):
-        potions_left = self.player.hp_potions
-        potions_left_text = self.body_font.render(f"POTIONS (E): {potions_left}", True, config.COLOR_WHITE)
+        potions_left = self.player.inventory.count_by_tag(Potion_HP.ITEM_TAG)
+        potions_left_text = self.body_font.render(f"HP POTIONS (E): {potions_left}", True, config.COLOR_WHITE)
         potions_section_width = potions_left_text.get_width()
         x = self.screen.get_width() - padding_x - potions_section_width
         y = 10

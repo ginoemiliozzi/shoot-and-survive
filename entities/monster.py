@@ -30,7 +30,9 @@ class Monster(pygame.sprite.Sprite):
         # Do damage to player
         damaged_players = pygame.sprite.spritecollide(self, self.players_group, dokill=False)
         for player in damaged_players:
-            player.take_damage(self.dmg)
+            is_dead = player.take_damage(self.dmg)
+            if is_dead:
+                player.kill()
 
         if self.image == self.damaged_img and pygame.time.get_ticks() - self.damaged_time > self.damage_display_duration:
             self.image = self.normal_img
