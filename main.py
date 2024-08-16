@@ -29,6 +29,6 @@ while True:
     if not players.sprite:
         hud.game_over()
     elif not monsters.sprites():
-        hud.game_won()
+        this_game.next_level()
     
     pygame.display.flip()

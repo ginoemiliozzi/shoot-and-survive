@@ -1,11 +1,11 @@
 import pygame
 from entities import Player
 from objects import Potion_HP
-
+from typing import Callable
 import config
 
 class GameHUD:
-    def __init__(self, screen: pygame.surface.Surface, player: Player, monsters: pygame.sprite.Group):
+    def __init__(self, screen: pygame.surface.Surface, player: Player, monsters: pygame.sprite.Group, current_level: Callable[[], int]):
         self.screen = screen
         self.player = player
         self.monsters = monsters
@@ -14,6 +14,7 @@ class GameHUD:
         self.hp_bar_height = 10
         self.hp_bar_width = 100
         self.monsters_left_width = 100
+        self.current_level = current_level
         
 
     def hp_bar(self, padding_x):
@@ -58,6 +59,15 @@ class GameHUD:
         self.screen.blit(potions_left_text, (x, y))
 
         return potions_section_width
+    
+    def level_info(self, padding_x):
+        level_info_text = self.title_font.render(f"LEVEL {self.current_level()}", True, config.COLOR_WHITE)
+        level_section_width = level_info_text.get_width()
+        x = self.screen.get_width() - padding_x - level_section_width
+        y = 10
+        self.screen.blit(level_info_text, (x, y))
+
+        return level_section_width
 
     def render(self):
         gap = 30
@@ -67,6 +77,8 @@ class GameHUD:
         acc_padding_right += self.monsters_left(acc_padding_right)
         acc_padding_right += gap
         acc_padding_right += self.potions_left(acc_padding_right)
+        acc_padding_right += gap
+        acc_padding_right += self.level_info(acc_padding_right)
 
     def game_over(self):
         game_over_text = self.title_font.render("GAME OVER", True, config.COLOR_RED)
