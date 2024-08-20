@@ -1,6 +1,6 @@
 import pygame
 from entities import Player
-from objects import Potion_HP
+from objects import Potion_HP, Potion_Invulnerable
 from typing import Callable
 import config
 
@@ -51,8 +51,9 @@ class GameHUD:
         return monsters_section_width
     
     def potions_left(self, padding_x):
-        potions_left = self.player.inventory.count_by_tag(Potion_HP.ITEM_TAG)
-        potions_left_text = self.body_font.render(f"HP POTIONS (E): {potions_left}", True, config.COLOR_WHITE)
+        hp_potions_left = self.player.inventory.count_by_tag(Potion_HP.ITEM_TAG)
+        invul_potions_left = self.player.inventory.count_by_tag(Potion_Invulnerable.ITEM_TAG)
+        potions_left_text = self.body_font.render(f"HP POTIONS (E): {hp_potions_left} / INV POTIONS (R): {invul_potions_left}", True, config.COLOR_WHITE)
         potions_section_width = potions_left_text.get_width()
         x = self.screen.get_width() - padding_x - potions_section_width
         y = 10

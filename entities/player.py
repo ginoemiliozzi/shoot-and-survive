@@ -1,6 +1,7 @@
 from entities.shot import Shot
-from objects import Potion_HP
+from objects import Potion_HP, Potion_Invulnerable
 from attributes import Inventory, HealthPoints
+from utils import apply_red_overlay, apply_invulnerable_overlay
 import pygame
 
 class Player(pygame.sprite.Sprite, HealthPoints):
@@ -47,9 +48,11 @@ class Player(pygame.sprite.Sprite, HealthPoints):
         self.shots_group = shots_group
         self.speed = 5
         self.direction = self.player_directions["RIGHT"]["direction_vector"]
-        self.inventory = Inventory({
-            Potion_HP() for _ in range(0, 3)
-        })
+        self.inventory = Inventory(
+            {Potion_HP() for _ in range(0, 3)}.union(
+                {Potion_Invulnerable() for _ in range(0, 2)}
+            )
+        )
 
     def update(self, keys, events):
         # Movement
@@ -77,11 +80,13 @@ class Player(pygame.sprite.Sprite, HealthPoints):
                     self.shoot()
                 if event.key == pygame.K_e:
                     self.inventory.use_item(Potion_HP.ITEM_TAG, self)
+                if event.key == pygame.K_r:
+                    self.inventory.use_item(Potion_Invulnerable.ITEM_TAG, self)
 
         # Handle damage state
         if self.should_display_dmg():
             # Apply red overlay to images while damaged
-            self.images = [self.apply_red_overlay(image) 
+            self.images = [apply_red_overlay(image) 
                            for image in self.player_directions[self.get_current_direction()]["direction_images"]]
         else:
             # Restore original images after damage duration
@@ -92,33 +97,14 @@ class Player(pygame.sprite.Sprite, HealthPoints):
         if self.current_frame >= len(self.images):
             self.current_frame = 0
 
-        self.image = self.images[int(self.current_frame)]
+        new_image_frame = self.images[int(self.current_frame)]
 
+        if self.should_display_invulnerable():
+            new_image_frame = apply_invulnerable_overlay(new_image_frame)
+            
+        self.image = new_image_frame
 
-    def apply_red_overlay(self, image):
-        # Create a copy of the original image to apply the overlay
-        damaged_image = image.copy()
-
-        # Lock the image for pixel access
-        damaged_image.lock()
-
-        # Iterate over each pixel in the image
-        for x in range(damaged_image.get_width()):
-            for y in range(damaged_image.get_height()):
-                # Get the current pixel color and alpha value
-                r, g, b, a = damaged_image.get_at((x, y))
-
-                # If the pixel is not fully transparent, apply the red overlay
-                if a > 0:
-                    # Calculate the new color with the red overlay
-                    new_r = min(r + 100, 255)  # Increase the red channel
-                    new_color = (new_r, g, b, a)
-                    damaged_image.set_at((x, y), new_color)
-
-        # Unlock the image after modifications
-        damaged_image.unlock()
-
-        return damaged_image
+    
             
 
     def get_current_direction(self):

@@ -43,7 +43,7 @@ class Monster(pygame.sprite.Sprite):
             self.kill()
         else:
             self.image = self.damaged_img
-            self.damaged_time = pygame.time.get_ticks()  
+            self.damaged_time = pygame.time.get_ticks()
 
     def move_towards(self, player):
         if not player:
